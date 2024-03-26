@@ -1,6 +1,5 @@
-class Szoba:
 
-    def __init__(self, ar, szobaszam):
-        self.ar = ar
-        self.szobasz = szobaszam
 
+datum = int(input('Add meg a datumot: ').split())
+
+print(datum)
