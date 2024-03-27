@@ -45,24 +45,46 @@ class Szalloda:
         self.foglalasok = []
 
     def szoba_hozzaadasa(self, szoba):
-        if isinstance(szoba, Szoba):
+        if isinstance(szoba, Szoba):    # Ellenőrzi, hogy példánya-e egy adott osztálynak és annak valemlyik leszármazottjának
             self.szobak.append(szoba)
         else:
             raise ValueError("Csak Szoba típusú objektumok adhatók hozzá.")
 
     def szoba_foglalasa(self, szobaszam, foglalo_neve, datum):
-        szoba = next((sz for sz in self.szobak if sz.szobaszam == szobaszam), None)
+        # Először None-t állítunk be a szoba változónak.
+        # Ez lesz az alapértelmezett érték, ha nem találunk megfelelő szobát.
+        szoba = None
+
+        # Bejárjuk a szálloda összes szobáját tartalmazó listát.
+        for aktualis_szoba in self.szobak:
+            # Ellenőrizzük, hogy az aktuális szoba szobaszáma megegyezik-e a keresettel.
+            if aktualis_szoba.szobaszam == szobaszam:
+                # Ha igen, akkor megtaláltuk a megfelelő szobát,
+                # és beállítjuk a szoba változót az aktuális szobára.
+                szoba = aktualis_szoba
+                # Mivel megtaláltuk a szobát, nincs szükség további keresésre,
+                # így kilépünk a ciklusból.
+                break
+
+        # Ellenőrizzük, hogy találtunk-e megfelelő szobát.
         if szoba is None:
+            # Ha nem, hibaüzenetet küldünk.
             raise ValueError("A megadott szobaszám nem található a szállodában.")
-        if any(foglalas.szoba.szobaszam == szobaszam and foglalas.datum == datum for foglalas in self.foglalasok):
-            raise ValueError("A szoba már foglalt erre a dátumra.")
+
+        # Ellenőrizzük, hogy a szoba már foglalt-e az adott dátumra.
+        for foglalas in self.foglalasok:
+            if foglalas.szoba.szobaszam == szobaszam and foglalas.datum == datum:
+                # Ha igen, akkor hibaüzenetet küldünk.
+                raise ValueError("A szoba már foglalt erre a dátumra.")
+
+        # Ha minden rendben, létrehozunk egy új foglalást, és hozzáadjuk a foglalások listájához.
         self.foglalasok.append(Foglalas(szoba, foglalo_neve, datum))
         return szoba.ar
 
     def foglalas_lemondasa(self, szobaszam, foglalo_neve, datum):
-        for i, foglalas in enumerate(self.foglalasok):
+        for i, foglalas in enumerate(self.foglalasok):      # Az enumarate miatt az indexe az i-ben tárolódik
             if foglalas.szoba.szobaszam == szobaszam and foglalas.foglalo_neve == foglalo_neve and foglalas.datum == datum:
-                del self.foglalasok[i]
+                del self.foglalasok[i]                      # Kitörli az i indexü foglalást
                 return True
         return False
 
@@ -75,23 +97,23 @@ class Szalloda:
             print(foglalas.foglalas_leirasa())
 
 def parse_date(input_str):
-    formats = ['%Y-%m-%d', '%Y %m %d', '%Y/%m/%d']  # You can add more formats
+    formats = ['%Y-%m-%d', '%Y %m %d', '%Y/%m/%d']
     for fmt in formats:
         try:
             return date(*map(int, input_str.replace('-', ' ').replace('/', ' ').split()))
         except ValueError:
-            continue  # Try the next format
-    return None  # If no format matched
+            continue  # Próbáld ki a következő format-et
+    return None  # Ha nem találtál megfelelőt
 
 def felhasznaloi_interfesz():
-    szalloda = Szalloda('Hotel Trasylvania')
+    szalloda = Szalloda('Grand Budapest Hotel')
     szalloda.szoba_hozzaadasa(EgyagyasSzoba(15000, 101))
     szalloda.szoba_hozzaadasa(KetagyasSzoba(20000, 102))
-    szalloda.szoba_hozzaadasa(EgyagyasSzoba(25000, 103))
-    szalloda.szoba_foglalasa(101, "Arany János", datetime.strptime("2024-05-08", "%Y-%m-%d").date())
-    szalloda.szoba_foglalasa(102, "Kosztolányi Dezső", datetime.strptime("2024-06-08", "%Y-%m-%d").date())
-    szalloda.szoba_foglalasa(101, "Franz Kafka", datetime.strptime("2024-09-10", "%Y-%m-%d").date())
-    szalloda.szoba_foglalasa(103, "Albert Camus", datetime.strptime("2024-06-07", "%Y-%m-%d").date())
+    szalloda.szoba_hozzaadasa(KetagyasSzoba(25000, 103))
+    szalloda.szoba_foglalasa(101, "Kincső", datetime.strptime("2024-05-08", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(102, "Dezső", datetime.strptime("2024-06-08", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(101, "Virág", datetime.strptime("2024-09-10", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(103, "Albert", datetime.strptime("2024-06-07", "%Y-%m-%d").date())
     szalloda.szoba_foglalasa(101, "Adam", datetime.strptime("2024-05-09", "%Y-%m-%d").date())
 
     while True:
@@ -107,7 +129,6 @@ def felhasznaloi_interfesz():
             nev = input("Adja meg a foglaló nevét: ")
             raw_date = input("Adja meg a dátumot (pl.: 2024-05-08, 2024 05 08): ")
             parsed_date = parse_date(raw_date)
-            print(type(parsed_date), parsed_date)
             if parsed_date:
                 try:
                     ar = szalloda.szoba_foglalasa(szobaszam, nev, parsed_date)
