@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, datetime
 
 # Absztrakt Szoba osztály
 class Szoba(ABC):
@@ -74,24 +74,25 @@ class Szalloda:
         for foglalas in self.foglalasok:
             print(foglalas.foglalas_leirasa())
 
-    def parse_datumot(datum_str):
-        for fmt in ("%Y %m %d", "%Y-%m-%d", "%Y %m %d"):  # Ide teheted a támogatott dátumformátumokat
-            try:
-                return date(*map(int, datum_str.replace('-', ' ').split()))
-            except ValueError:
-                continue
-        raise ValueError(f"Nem sikerült értelmezni a dátumot: {datum_str}")
+def parse_date(input_str):
+    formats = ['%Y-%m-%d', '%Y %m %d', '%Y/%m/%d']  # You can add more formats
+    for fmt in formats:
+        try:
+            return date(*map(int, input_str.replace('-', ' ').replace('/', ' ').split()))
+        except ValueError:
+            continue  # Try the next format
+    return None  # If no format matched
 
 def felhasznaloi_interfesz():
     szalloda = Szalloda('Hotel Trasylvania')
     szalloda.szoba_hozzaadasa(EgyagyasSzoba(15000, 101))
     szalloda.szoba_hozzaadasa(KetagyasSzoba(20000, 102))
     szalloda.szoba_hozzaadasa(EgyagyasSzoba(25000, 103))
-    szalloda.szoba_foglalasa(101, "Arany János", "2024 5 8")
-    szalloda.szoba_foglalasa(102, "Kosztolányi Dezső", "2024 6 8")
-    szalloda.szoba_foglalasa(101, "Franz Kafka", "2024 9 10")
-    szalloda.szoba_foglalasa(103, "Albert Camus", "2024 6 7")
-    szalloda.szoba_foglalasa(101, "Arany János", "2024 10 8")
+    szalloda.szoba_foglalasa(101, "Arany János", datetime.strptime("2024-05-08", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(102, "Kosztolányi Dezső", datetime.strptime("2024-06-08", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(101, "Franz Kafka", datetime.strptime("2024-09-10", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(103, "Albert Camus", datetime.strptime("2024-06-07", "%Y-%m-%d").date())
+    szalloda.szoba_foglalasa(101, "Adam", datetime.strptime("2024-05-09", "%Y-%m-%d").date())
 
     while True:
         print("\nVálasszon az alábbi opciók közül:")
@@ -104,21 +105,31 @@ def felhasznaloi_interfesz():
         if valasztas == '1':
             szobaszam = int(input("Adja meg a szobaszámot: "))
             nev = input("Adja meg a foglaló nevét: ")
-            ev, honap, nap = map(int, input("Adja meg a dátumot (év hónap nap): ").split())
-            try:
-                ar = szalloda.szoba_foglalasa(szobaszam, nev, date(ev, honap, nap))
-                print(f"A foglalás sikeres. Az ára: {ar} Ft.")
-            except Exception as e:
-                print(e)
+            raw_date = input("Adja meg a dátumot (pl.: 2024-05-08, 2024 05 08): ")
+            parsed_date = parse_date(raw_date)
+            print(type(parsed_date), parsed_date)
+            if parsed_date:
+                try:
+                    ar = szalloda.szoba_foglalasa(szobaszam, nev, parsed_date)
+                    print(f"A foglalás sikeres. Az ára: {ar} Ft.")
+                except ValueError as e:  # Kifejezetten ValueError kivételeket kezel
+                    print(f"Hiba: {e}")
+
+            else:
+                print("Hibás dátumformátum. Kérem, próbálja újra.")
 
         elif valasztas == '2':
             szobaszam = int(input("Adja meg a szobaszámot, amelyikből a foglalást le szeretné mondani: "))
             nev = input("Adja meg a foglaló nevét: ")
-            ev, honap, nap = map(int, input("Adja meg a lemondás dátumát (év hónap nap): ").split())
-            if szalloda.foglalas_lemondasa(szobaszam, nev, date(ev, honap, nap)):
-                print("A foglalás sikeresen lemondva.")
+            raw_date = input("Adja meg a lemondás dátumát (pl.: 2024-05-08, 2024 05 08): ")
+            parsed_date = parse_date(raw_date)
+            if parsed_date:
+                if szalloda.foglalas_lemondasa(szobaszam, nev, parsed_date):
+                    print("A foglalás sikeresen lemondva.")
+                else:
+                    print("Nem sikerült a foglalást lemondani.")
             else:
-                print("Nem sikerült a foglalást lemondani.")
+                print("Hibás dátumformátum. Kérem, próbálja újra.")
 
         elif valasztas == '3':
             szalloda.foglalasok_kiirasa()
