@@ -1,34 +1,30 @@
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 
-# Absztrakt Szoba osztály
 class Szoba(ABC):
+    """"Szoba absztakt osztály, ahol létrehozzuk az
+    Egyagyas és Ketagyas szoba származtatitt osztályokat"""
     def __init__(self, ar, szobaszam):
         self.ar = ar
         self.szobaszam = szobaszam
 
-    @abstractmethod
-    def leiras(self):
-        pass
 
 class EgyagyasSzoba(Szoba):
-    def __init__(self, ar, szobaszam):
+    def __init__(self, ar, szobaszam, minibar=True):
         super().__init__(ar, szobaszam)
-        self.minibar = True
+        self.minibar = minibar
 
-    def leiras(self):
-        return f"Egyágyas szoba, szobaszám: {self.szobaszam}, ár: {self.ar} Ft, minibár: {'van' if self.minibar else 'nincs'}"
 
 class KetagyasSzoba(Szoba):
-    def __init__(self, ar, szobaszam):
+    def __init__(self, ar, szobaszam, erkely=True):
         super().__init__(ar, szobaszam)
-        self.erkely = True
+        self.erkely = erkely
 
-    def leiras(self):
-        return f"Kétágyas szoba, szobaszám: {self.szobaszam}, ár: {self.ar} Ft, erkély: {'van' if self.erkely else 'nincs'}"
 
-# Foglalás osztály
+
 class Foglalas:
+    """Fogalalás olytály egy foglalas_leirasa függvénnyel,
+    amelyik a foglalások listázásánál segít"""
     def __init__(self, szoba, foglalo_neve, datum):
         self.szoba = szoba
         self.foglalo_neve = foglalo_neve
@@ -37,8 +33,10 @@ class Foglalas:
     def foglalas_leirasa(self):
         return f"Foglalás: {self.foglalo_neve}, Szobaszám: {self.szoba.szobaszam}, Dátum: {self.datum}"
 
-# Szalloda osztály a szobák és foglalások kezelésére
+
 class Szalloda:
+    """Szalloda osztály, ahol a foglalásokat kezeljük:
+     hozzáadás, foglalás, lemondás, foglalások kiírása."""
     def __init__(self, nev):
         self.nev = nev
         self.szobak = []
@@ -79,7 +77,7 @@ class Szalloda:
 
         # Ha minden rendben, létrehozunk egy új foglalást, és hozzáadjuk a foglalások listájához.
         self.foglalasok.append(Foglalas(szoba, foglalo_neve, datum))
-        return szoba.ar
+        return szoba.ar, szoba
 
     def foglalas_lemondasa(self, szobaszam, foglalo_neve, datum):
         for i, foglalas in enumerate(self.foglalasok):      # Az enumarate miatt az indexe az i-ben tárolódik
@@ -106,6 +104,7 @@ def parse_date(input_str):
     return None  # Ha nem találtál megfelelőt
 
 def felhasznaloi_interfesz():
+    # Rendzser feltöltése egy szálodával, három szobával, és öt foglalással
     szalloda = Szalloda('Grand Budapest Hotel')
     szalloda.szoba_hozzaadasa(EgyagyasSzoba(15000, 101))
     szalloda.szoba_hozzaadasa(KetagyasSzoba(20000, 102))
@@ -131,11 +130,15 @@ def felhasznaloi_interfesz():
             parsed_date = parse_date(raw_date)
             if parsed_date:
                 try:
-                    ar = szalloda.szoba_foglalasa(szobaszam, nev, parsed_date)
-                    print(f"A foglalás sikeres. Az ára: {ar} Ft.")
-                except ValueError as e:  # Kifejezetten ValueError kivételeket kezel
+                    ar, szoba = szalloda.szoba_foglalasa(szobaszam, nev, parsed_date)
+                    extra_info = ""
+                    if isinstance(szoba, EgyagyasSzoba) and szoba.minibar:
+                        extra_info = " és minibárral rendelkezik."
+                    elif isinstance(szoba, KetagyasSzoba) and szoba.erkely:
+                        extra_info = " és erkéllyel rendelkezik."
+                    print(f"A foglalás sikeres. Az ára: {ar} Ft.{extra_info}")
+                except ValueError as e:
                     print(f"Hiba: {e}")
-
             else:
                 print("Hibás dátumformátum. Kérem, próbálja újra.")
 
