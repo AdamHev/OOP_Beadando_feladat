@@ -49,19 +49,11 @@ class Szalloda:
             raise ValueError("Csak Szoba típusú objektumok adhatók hozzá.")
 
     def szoba_foglalasa(self, szobaszam, foglalo_neve, datum):
-        # Először None-t állítunk be a szoba változónak.
-        # Ez lesz az alapértelmezett érték, ha nem találunk megfelelő szobát.
         szoba = None
-
-        # Bejárjuk a szálloda összes szobáját tartalmazó listát.
         for aktualis_szoba in self.szobak:
             # Ellenőrizzük, hogy az aktuális szoba szobaszáma megegyezik-e a keresettel.
             if aktualis_szoba.szobaszam == szobaszam:
-                # Ha igen, akkor megtaláltuk a megfelelő szobát,
-                # és beállítjuk a szoba változót az aktuális szobára.
                 szoba = aktualis_szoba
-                # Mivel megtaláltuk a szobát, nincs szükség további keresésre,
-                # így kilépünk a ciklusból.
                 break
 
         # Ellenőrizzük, hogy találtunk-e megfelelő szobát.
@@ -80,9 +72,9 @@ class Szalloda:
         return szoba.ar, szoba
 
     def foglalas_lemondasa(self, szobaszam, foglalo_neve, datum):
-        for i, foglalas in enumerate(self.foglalasok):      # Az enumarate miatt az indexe az i-ben tárolódik
+        for i, foglalas in enumerate(self.foglalasok):
             if foglalas.szoba.szobaszam == szobaszam and foglalas.foglalo_neve == foglalo_neve and foglalas.datum == datum:
-                del self.foglalasok[i]                      # Kitörli az i indexü foglalást
+                del self.foglalasok[i]
                 return True
         return False
 
@@ -164,5 +156,5 @@ def felhasznaloi_interfesz():
         else:
             print("Érvénytelen opció, kérem próbálja újra.")
 
-# Fő program indítása
-felhasznaloi_interfesz()
+if __name__ == "__main__":
+    felhasznaloi_interfesz()
